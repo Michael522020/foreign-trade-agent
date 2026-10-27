@@ -8,7 +8,12 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import select
 
-from src.compliance.config import GateConfig, load_gate_config
+from src.compliance.config import (
+    REQUIRED_SANCTION_LISTS,
+    GateConfig,
+    load_gate_config,
+    sanction_lists_present,
+)
 from src.compliance.gate import SendTask, send_gate
 from src.logging_config import bind_trace, current_trace_id
 from src.models.base import new_id, utcnow
@@ -19,6 +24,7 @@ from tests.models.support import build_graph
 
 NOW = datetime(2026, 10, 27, tzinfo=timezone.utc)
 _FACTS = [ApprovedFact("100", "pcs", "config/product.yaml")]
+_LISTS = frozenset((f"syn-list-{code.lower()}", code) for code in REQUIRED_SANCTION_LISTS)
 
 
 def _ctx(**overrides: object) -> GateConfig:
@@ -33,7 +39,7 @@ def _ctx(**overrides: object) -> GateConfig:
         "lia_required_countries": frozenset({"FR"}),
         "lia_recorded_countries": frozenset(),
         "sanction_list_loaded": True,
-        "sanction_names": frozenset(),
+        "sanction_entries": _LISTS,
         "config_hash": "test",
     }
     payload.update(overrides)
@@ -56,6 +62,13 @@ def test_default_config_is_not_ready_to_send() -> None:
     loaded = load_gate_config()
     assert loaded.auth_ready is False
     assert loaded.sanction_list_loaded is False
+    assert sanction_lists_present(loaded.sanction_entries) == frozenset()
+    assert set(REQUIRED_SANCTION_LISTS) == {
+        "OFAC_SDN",
+        "EU_CONSOLIDATED",
+        "BIS_ENTITY",
+        "UK_OFSI",
+    }
 
 
 def test_trace_id_stays_for_the_whole_command() -> None:
@@ -121,11 +134,27 @@ def test_exact_sanction_name_blocks_without_override(session) -> None:  # type: 
     result = send_gate(
         session,
         _task(graph.lead.id),
-        _ctx(sanction_names=frozenset({graph.company.name.casefold()})),
+        _ctx(
+            sanction_entries=_LISTS | {(graph.company.name.casefold(), "OFAC_SDN")},
+        ),
         _FACTS,
         NOW,
     )
-    assert result.blocked_reasons == ["SANCTIONED_ENTITY"]
+    assert result.blocked_reasons == ["SANCTIONED_ENTITY:OFAC_SDN"]
+
+
+def test_one_sanction_list_does_not_count_as_loaded(session) -> None:  # type: ignore[no-untyped-def]
+    graph = build_graph(session)
+    graph.company.country = "US"
+    session.flush()
+    result = send_gate(
+        session,
+        _task(graph.lead.id),
+        _ctx(sanction_entries=frozenset({("syn-list-ofac_sdn", "OFAC_SDN")})),
+        _FACTS,
+        NOW,
+    )
+    assert result.blocked_reasons == ["SANCTION_LIST_NOT_LOADED"]
 
 
 def test_unapproved_quantity_is_named(session) -> None:  # type: ignore[no-untyped-def]

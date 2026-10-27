@@ -12,9 +12,10 @@ La clasificación de consultas (P4) y la ayuda a la cotización (P5) no están h
 - Una consulta con los cinco datos ya completos debe pasar igualmente por `NEEDS_INFO` antes de cotizar.
 - `NOT_INTERESTED` y `NURTURE` exigen una respuesta previa y solo se entran desde `REPLIED`.
 - Plantilla de empleados: `UNKNOWN`, `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+`.
-- Facturación anual en dólares: `UNKNOWN`, `UNDER_1M`, `1M_10M`, `10M_50M`, `50M_200M`, `200M_1B`, `OVER_1B`.
+- Facturación anual en renminbi: `UNKNOWN`, `UNDER_1M_CNY` (menos de 1 millón de CNY), `1M_10M_CNY` (1 a 10 millones), `10M_50M_CNY` (10 a 50 millones), `50M_200M_CNY` (50 a 200 millones), `200M_1B_CNY` (200 millones a 1.000 millones), `OVER_1B_CNY` (más de 1.000 millones).
 - Resultado del seguimiento: `NO_REPLY`, `REPLIED`, `POSITIVE`, `OBJECTION`, `MEETING_SET`, `NOT_INTERESTED`, `NURTURE`, `BOUNCED`, `UNSUBSCRIBED`, `WRONG_CONTACT`.
-- En CIF y DDP el seguro va en una línea propia `insurance`, y el importe tiene que ser mayor que 0.
+- En CIF y DDP el seguro va en una línea propia `insurance`. El importe tiene que ser mayor que 0 e igual a importe de la factura × 110 % × tasa de prima. El 110 % está confirmado. La tasa está en `config/quotation.yaml` y sigue siendo un ejemplo.
+- El cribado de sanciones compara el nombre exacto, y solo si OFAC SDN, la lista consolidada de la UE, la BIS Entity List y UK OFSI se importan juntas. Si falta una lista, se bloquea. Un acierto no se puede autorizar a mano.
 - La urgencia de la consulta es `LOW`, `NORMAL` o `HIGH`.
 - Los pesos son encaje 30, ventana 20, dificultad de cambio 15, rol 15, escala 10, alcanzabilidad 10. El pedido mínimo es 100 pcs y el plazo 30 days. Esas cifras quedan confirmadas como la convención. La capacidad mensual, el espaciado de seguimientos y el coste de los errores de clasificación siguen siendo ejemplos pendientes de otra confirmación.
 
@@ -106,6 +107,6 @@ python -m src.cli report monthly --month 2026-10
 python -m src.cli gate check --lead-id <lead-id>
 ```
 
-`gate check` solo deja constancia del bloqueo o del permiso y no envía nada. En la configuración incluida, la autenticación no está lista y la lista de sanciones no está cargada, así que el resultado es un bloqueo.
+`gate check` solo deja constancia del bloqueo o del permiso y no envía nada. En la configuración incluida, la autenticación no está lista y ninguna de las cuatro listas de sanciones está cargada, así que el resultado es un bloqueo.
 
 Si la muestra es pequeña, el informe dice que los datos no bastan y que no se puede concluir. No escribe un porcentaje de mejora.

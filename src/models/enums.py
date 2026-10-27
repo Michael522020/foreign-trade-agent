@@ -148,15 +148,20 @@ class EmployeeBand(str, Enum):
 
 
 class AnnualRevenueBand(str, Enum):
-    """年营收，美元口径，沿用买家分层的常用档。"""
+    """年营收，人民币口径。
+
+    UNDER_1M_CNY 是 100 万以下，1M_10M_CNY 是 100 万至 1000 万，
+    10M_50M_CNY 是 1000 万至 5000 万，50M_200M_CNY 是 5000 万至 2 亿，
+    200M_1B_CNY 是 2 亿至 10 亿，OVER_1B_CNY 是 10 亿以上。
+    """
 
     UNKNOWN = "UNKNOWN"
-    UNDER_1M = "UNDER_1M"
-    FROM_1M_TO_10M = "1M_10M"
-    FROM_10M_TO_50M = "10M_50M"
-    FROM_50M_TO_200M = "50M_200M"
-    FROM_200M_TO_1B = "200M_1B"
-    OVER_1B = "OVER_1B"
+    UNDER_1M_CNY = "UNDER_1M_CNY"
+    FROM_1M_TO_10M_CNY = "1M_10M_CNY"
+    FROM_10M_TO_50M_CNY = "10M_50M_CNY"
+    FROM_50M_TO_200M_CNY = "50M_200M_CNY"
+    FROM_200M_TO_1B_CNY = "200M_1B_CNY"
+    OVER_1B_CNY = "OVER_1B_CNY"
 
 
 class InteractionOutcome(str, Enum):

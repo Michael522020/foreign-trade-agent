@@ -12,9 +12,10 @@ Le tri des demandes (P4) et l'aide au devis (P5) ne sont pas réalisés. Sans vr
 - Une demande dont les cinq éléments sont déjà complets doit quand même passer par `NEEDS_INFO` avant le devis.
 - `NOT_INTERESTED` et `NURTURE` exigent une réponse préalable et ne partent que de `REPLIED`.
 - Effectif : `UNKNOWN`, `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+`.
-- Chiffre d'affaires annuel en dollars : `UNKNOWN`, `UNDER_1M`, `1M_10M`, `10M_50M`, `50M_200M`, `200M_1B`, `OVER_1B`.
+- Chiffre d'affaires annuel en renminbi : `UNKNOWN`, `UNDER_1M_CNY` (moins de 1 million CNY), `1M_10M_CNY` (1 à 10 millions), `10M_50M_CNY` (10 à 50 millions), `50M_200M_CNY` (50 à 200 millions), `200M_1B_CNY` (200 millions à 1 milliard), `OVER_1B_CNY` (plus de 1 milliard).
 - Résultat d'un échange : `NO_REPLY`, `REPLIED`, `POSITIVE`, `OBJECTION`, `MEETING_SET`, `NOT_INTERESTED`, `NURTURE`, `BOUNCED`, `UNSUBSCRIBED`, `WRONG_CONTACT`.
-- Pour CIF et DDP, l'assurance est une ligne `insurance` à part, et le montant doit être supérieur à 0.
+- Pour CIF et DDP, l'assurance est une ligne `insurance` à part. Le montant doit être supérieur à 0 et égal à montant de la facture × 110 % × taux de prime. Les 110 % sont confirmés. Le taux est dans `config/quotation.yaml` et reste un exemple.
+- Le contrôle des sanctions compare le nom exact, et seulement si OFAC SDN, la liste consolidée de l'UE, la BIS Entity List et UK OFSI sont importées ensemble. S'il manque une liste, le passage est bloqué. Un résultat positif ne peut pas être levé à la main.
 - L'urgence d'une demande est `LOW`, `NORMAL` ou `HIGH`.
 - Les poids sont adéquation 30, fenêtre 20, difficulté de bascule 15, rôle 15, taille 10, joignabilité 10. Le minimum de commande est 100 pcs et le délai 30 days. Ces chiffres sont la convention confirmée. La capacité mensuelle, l'espacement des relances et le coût des erreurs de classement restent des exemples en attente d'une confirmation séparée.
 
@@ -106,6 +107,6 @@ python -m src.cli report monthly --month 2026-10
 python -m src.cli gate check --lead-id <lead-id>
 ```
 
-`gate check` n'enregistre qu'un blocage ou un feu vert et n'envoie rien. Dans la configuration livrée, l'authentification n'est pas prête et la liste de sanctions n'est pas chargée, donc le résultat est un blocage.
+`gate check` n'enregistre qu'un blocage ou un feu vert et n'envoie rien. Dans la configuration livrée, l'authentification n'est pas prête et aucune des quatre listes de sanctions n'est chargée, donc le résultat est un blocage.
 
 Si l'échantillon est trop petit, le rapport dit que les données sont insuffisantes et qu'aucune conclusion n'est possible. Il n'affiche pas de pourcentage de gain.

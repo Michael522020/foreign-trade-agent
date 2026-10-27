@@ -26,8 +26,29 @@ class GateConfig:
     lia_required_countries: frozenset[str]
     lia_recorded_countries: frozenset[str]
     sanction_list_loaded: bool
-    sanction_names: frozenset[str]
+    sanction_entries: frozenset[tuple[str, str]]
     config_hash: str
+
+
+REQUIRED_SANCTION_LISTS = (
+    "OFAC_SDN",
+    "EU_CONSOLIDATED",
+    "BIS_ENTITY",
+    "UK_OFSI",
+)
+
+
+def matching_sanction_list(name: str, entries: frozenset[tuple[str, str]]) -> str | None:
+    folded = name.strip().casefold()
+    hits = {code for entry_name, code in entries if entry_name == folded}
+    for code in REQUIRED_SANCTION_LISTS:
+        if code in hits:
+            return code
+    return None
+
+
+def sanction_lists_present(entries: frozenset[tuple[str, str]]) -> frozenset[str]:
+    return frozenset(code for _, code in entries)
 
 
 def _codes(raw: object, label: str) -> frozenset[str]:
@@ -69,10 +90,18 @@ def load_gate_config(path: Path | None = None) -> GateConfig:
     loaded = sanctions.get("loaded")
     if not isinstance(loaded, bool):
         raise ConfigError("sanctions.loaded 必须是布尔值")
-    entities = sanctions.get("entities")
-    if not isinstance(entities, list):
-        raise ConfigError("sanctions.entities 必须是列表")
-    names = frozenset(str(item).strip().casefold() for item in entities if str(item).strip())
+    declared = sanctions.get("required_lists")
+    if not isinstance(declared, list):
+        raise ConfigError("sanctions.required_lists 必须是列表")
+    declared_codes = {str(item).strip() for item in declared}
+    if declared_codes != set(REQUIRED_SANCTION_LISTS):
+        raise ConfigError(
+            "sanctions.required_lists 必须同时包含 "
+            "OFAC_SDN、EU_CONSOLIDATED、BIS_ENTITY、UK_OFSI"
+        )
+    entries = _sanction_entries(sanctions.get("entities"))
+    if loaded and sanction_lists_present(entries) != frozenset(REQUIRED_SANCTION_LISTS):
+        raise ConfigError("sanctions.loaded 为 true 时，四份名单都必须有已导入的精确名称")
     payload = {
         "auth": auth,
         "quota": quota,
@@ -95,6 +124,22 @@ def load_gate_config(path: Path | None = None) -> GateConfig:
         lia_required_countries=_codes(raw.get("lia_required_countries"), "lia_required_countries"),
         lia_recorded_countries=_codes(raw.get("lia_recorded_countries"), "lia_recorded_countries"),
         sanction_list_loaded=loaded,
-        sanction_names=names,
+        sanction_entries=entries,
         config_hash=digest,
     )
+
+
+def _sanction_entries(raw: object) -> frozenset[tuple[str, str]]:
+    if not isinstance(raw, list):
+        raise ConfigError("sanctions.entities 必须是列表")
+    allowed = set(REQUIRED_SANCTION_LISTS)
+    entries: set[tuple[str, str]] = set()
+    for item in raw:
+        if not isinstance(item, dict):
+            raise ConfigError("制裁条目必须是映射，并带 name 与 list")
+        name = str(item.get("name") or "").strip()
+        list_code = str(item.get("list") or "").strip()
+        if not name or list_code not in allowed:
+            raise ConfigError("制裁条目必须有 name，且 list 属于四份官方名单")
+        entries.add((name.casefold(), list_code))
+    return frozenset(entries)

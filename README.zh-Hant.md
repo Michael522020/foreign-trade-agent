@@ -12,9 +12,10 @@
 - 五要素已經齊全的詢盤，仍然必須經過 `NEEDS_INFO`，才能進入報價。
 - `NOT_INTERESTED` 和 `NURTURE` 必須先有回覆，只能從 `REPLIED` 進入。
 - 員工人數用 `UNKNOWN`、`1-10`、`11-50`、`51-200`、`201-500`、`501-1000`、`1001-5000`、`5001-10000`、`10001+`。
-- 年營收用美元分檔：`UNKNOWN`、`UNDER_1M`、`1M_10M`、`10M_50M`、`50M_200M`、`200M_1B`、`OVER_1B`。
+- 年營收用人民幣分檔：`UNKNOWN`（未知）、`UNDER_1M_CNY`（100萬以下）、`1M_10M_CNY`（100萬至1000萬）、`10M_50M_CNY`（1000萬至5000萬）、`50M_200M_CNY`（5000萬至2億）、`200M_1B_CNY`（2億至10億）、`OVER_1B_CNY`（10億以上）。
 - 跟進結果用 `NO_REPLY`、`REPLIED`、`POSITIVE`、`OBJECTION`、`MEETING_SET`、`NOT_INTERESTED`、`NURTURE`、`BOUNCED`、`UNSUBSCRIBED`、`WRONG_CONTACT`。
-- CIF 和 DDP 的保險必須單獨寫在 `insurance`，而且金額大於 0。
+- CIF 和 DDP 的保險必須單獨寫在 `insurance`，金額大於 0，而且等於發票金額 × 110% × 保險費率。110% 已確認。費率在 `config/quotation.yaml`，仍是示例。
+- 制裁篩查四份名單一起做精確匹配：OFAC SDN、歐盟綜合清單、BIS Entity List、UK OFSI。未全部匯入就攔截，命中後不能人工放行。
 - 詢盤緊急度就是 `LOW`、`NORMAL`、`HIGH`。
 - 評分權重為需求匹配 30、窗口 20、切換難度 15、角色 15、規模 10、可達性 10。起訂量 100 pcs，交期 30 days。這組數已按慣例確認。月產能、跟進間隔和錯分代價仍是待業務另行確認的示例。
 
@@ -106,6 +107,6 @@ python -m src.cli report monthly --month 2026-10
 python -m src.cli gate check --lead-id <線索號>
 ```
 
-`gate check` 只做攔截和審計，不發送。預設認證未就緒、制裁名單未匯入，所以結果是攔截。
+`gate check` 只做攔截和審計，不發送。預設認證未就緒，四份制裁名單都未匯入，所以結果是攔截。
 
 評估樣本不足時，報告寫「數據不足」和「暫不能判斷」，不寫提升百分比。

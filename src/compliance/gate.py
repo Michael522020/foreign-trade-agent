@@ -10,7 +10,12 @@ import structlog
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import Session
 
-from src.compliance.config import GateConfig
+from src.compliance.config import (
+    REQUIRED_SANCTION_LISTS,
+    GateConfig,
+    matching_sanction_list,
+    sanction_lists_present,
+)
 from src.logging_config import current_trace_id
 from src.models.base import new_id, utcnow
 from src.models.compliance import ComplianceAudit, Interaction, Suppression
@@ -157,10 +162,12 @@ def _collect(session: Session, task: SendTask, ctx: GateConfig, facts: list[Appr
         country in ctx.lia_required_countries and country not in ctx.lia_recorded_countries
     ):
         return _stop("JURISDICTION_RESTRICTED", warnings)
-    if not ctx.sanction_list_loaded:
+    listed = matching_sanction_list(company.name, ctx.sanction_entries)
+    if listed is not None:
+        return _stop(f"SANCTIONED_ENTITY:{listed}", warnings)
+    present = sanction_lists_present(ctx.sanction_entries)
+    if not ctx.sanction_list_loaded or present != frozenset(REQUIRED_SANCTION_LISTS):
         return _stop("SANCTION_LIST_NOT_LOADED", warnings)
-    if company.name.strip().casefold() in ctx.sanction_names:
-        return _stop("SANCTIONED_ENTITY", warnings)
     if task.is_first_touch and body_has_link(task.body):
         warnings.append("FIRST_TOUCH_HAS_LINK")
     unapproved = find_unapproved_facts(task.body, facts)

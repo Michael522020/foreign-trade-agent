@@ -52,5 +52,11 @@ lia_required_countries:
   - GB
 lia_recorded_countries: []
 sanctions:
+  # 四份官方名单一起做精确匹配。名称由人工从官方清单导入，这里不写真实主体。
   loaded: false
+  required_lists:
+    - OFAC_SDN
+    - EU_CONSOLIDATED
+    - BIS_ENTITY
+    - UK_OFSI
   entities: []

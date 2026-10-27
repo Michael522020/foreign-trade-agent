@@ -1,0 +1,4 @@
+# 保险费 = 发票金额 × invoice_cover_ratio × premium_rate。
+# 发票金额 = unit_price × quantity，币种与报价一致。
+invoice_cover_ratio: "1.10"  # 业务已确认：投保金额按发票金额的 110%
+premium_rate: "0.001"  # 示例值，上线前必须由业务确认

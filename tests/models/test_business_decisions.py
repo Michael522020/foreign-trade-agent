@@ -14,8 +14,17 @@ from src.errors import ConstraintViolation, InvalidTransition
 from src.models.base import new_id
 from src.models.commercial import Inquiry
 from src.models.compliance import Interaction
-from src.models.enums import Channel, Direction, Incoterm, InquiryStatus, LeadStage, PaymentTerms
+from src.models.enums import (
+    AnnualRevenueBand,
+    Channel,
+    Direction,
+    Incoterm,
+    InquiryStatus,
+    LeadStage,
+    PaymentTerms,
+)
 from src.models.fx import foreign_to_cny
+from src.models.insurance import insurance_premium
 from src.models.parties import Lead
 from src.models.schemas import QuotationIn
 from src.models.state_machine import InquiryEvent, LeadEvent, transition
@@ -74,8 +83,13 @@ def test_cif_and_ddp_require_a_positive_insurance_line() -> None:
         "created_at": CREATED,
     }
     for incoterm in (Incoterm.CIF, Incoterm.DDP):
-        with pytest.raises(ValidationError, match="保险"):
+        with pytest.raises(ValidationError, match="110%"):
             QuotationIn.model_validate({**base, "incoterm": incoterm})
+    expected = insurance_premium(Decimal("100"))
+    priced = cost_fields(format(Decimal("100") - expected, "f"))
+    priced["insurance"] = format(expected, "f")
+    parsed = QuotationIn.model_validate({**base, "incoterm": Incoterm.CIF, "cost_breakdown": priced})
+    assert parsed.cost_breakdown.insurance == expected
 
 
 def test_database_rejects_zero_cif_insurance(session) -> None:  # type: ignore[no-untyped-def]
@@ -120,6 +134,22 @@ def test_complete_inquiry_still_passes_needs_info() -> None:
         transition(inquiry, InquiryEvent.MARK_QUOTED)
     assert caught.value.allowed_from == ["NEEDS_INFO"]
     assert inquiry.status == InquiryStatus.TRIAGED
+
+
+def test_usd_revenue_band_is_rejected(session) -> None:  # type: ignore[no-untyped-def]
+    graph = build_graph(session)
+    graph.company.annual_revenue_band = "UNDER_1M"
+    with pytest.raises(ConstraintViolation) as caught:
+        session.flush()
+    assert caught.value.field == "annual_revenue_band"
+    session.rollback()
+
+
+def test_cny_revenue_band_is_stored(session) -> None:  # type: ignore[no-untyped-def]
+    graph = build_graph(session)
+    graph.company.annual_revenue_band = AnnualRevenueBand.UNDER_1M_CNY.value
+    session.flush()
+    assert graph.company.annual_revenue_band == "UNDER_1M_CNY"
 
 
 def test_unknown_employee_band_is_rejected(session) -> None:  # type: ignore[no-untyped-def]

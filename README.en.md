@@ -12,9 +12,10 @@ Inquiry triage (P4) and quote assistance (P5) are not implemented. Without real 
 - An inquiry whose five elements are already complete must still pass through `NEEDS_INFO` before a quotation.
 - `NOT_INTERESTED` and `NURTURE` require a reply first. They can be entered only from `REPLIED`.
 - Headcount bands: `UNKNOWN`, `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+`.
-- Annual revenue bands, in US dollars: `UNKNOWN`, `UNDER_1M`, `1M_10M`, `10M_50M`, `50M_200M`, `200M_1B`, `OVER_1B`.
+- Annual revenue bands, in renminbi: `UNKNOWN`, `UNDER_1M_CNY` (under 1 million CNY), `1M_10M_CNY` (1–10 million), `10M_50M_CNY` (10–50 million), `50M_200M_CNY` (50–200 million), `200M_1B_CNY` (200 million–1 billion), `OVER_1B_CNY` (over 1 billion).
 - Follow-up outcomes: `NO_REPLY`, `REPLIED`, `POSITIVE`, `OBJECTION`, `MEETING_SET`, `NOT_INTERESTED`, `NURTURE`, `BOUNCED`, `UNSUBSCRIBED`, `WRONG_CONTACT`.
-- CIF and DDP insurance must be its own `insurance` line, and the amount must be greater than 0.
+- CIF and DDP insurance must be its own `insurance` line, greater than 0, and equal to the invoice amount × 110% × the premium rate. The 110% cover is confirmed. The rate is in `config/quotation.yaml` and is still an example.
+- Sanctions screening is an exact name match across four lists together: OFAC SDN, the EU Consolidated List, the BIS Entity List, and UK OFSI. If any list is missing, the gate blocks. A hit cannot be overridden.
 - Inquiry urgency is `LOW`, `NORMAL`, or `HIGH`.
 - Score weights are demand fit 30, window 20, switchability 15, role 15, scale 10, reachability 10. MOQ is 100 pcs and lead time is 30 days. Those figures are the confirmed convention. Monthly capacity, sequence spacing, and misclassification costs remain examples pending a separate business confirmation.
 
@@ -106,6 +107,6 @@ python -m src.cli report monthly --month 2026-10
 python -m src.cli gate check --lead-id <lead-id>
 ```
 
-`gate check` records a block or an allow and does not send. With the shipped config, authentication is not ready and the sanctions list is not loaded, so the result is a block.
+`gate check` records a block or an allow and does not send. With the shipped config, authentication is not ready and none of the four sanctions lists is loaded, so the result is a block.
 
 When the sample is too small, the report says the data is insufficient and that no conclusion can be drawn. It does not print a lift percentage.

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from src.models.base import new_id
 from src.models.catalog import Product
+from src.models.insurance import insurance_premium
 from src.models.commercial import Inquiry, Quotation
 from src.models.enums import (
     BuyerType,
@@ -222,7 +223,7 @@ def add_quotation(
         raise RuntimeError("夹具汇率字段类型不对")
     breakdown = cost_fields(material)
     if incoterm in {Incoterm.CIF, Incoterm.DDP}:
-        premium = Decimal("1")
+        premium = insurance_premium(Decimal(unit_price) * quantity)
         material_amount = Decimal(material) - premium
         if material_amount < 0:
             raise RuntimeError("合成报价扣掉保险后材料成本为负")

@@ -10,7 +10,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, ValidationError, field_validator, model_validator
 
 from src.errors import ConstraintViolation
-from src.models.cost import CostBreakdown, assert_cost_matches, parse_cost
+from src.models.cost import CostBreakdown, assert_cost_matches
+from src.models.insurance import assert_insurance_premium
 from src.models.enums import (
     ENABLED_INCOTERMS,
     PORT_FORBIDDEN,
@@ -242,8 +243,12 @@ class QuotationIn(BaseModel):
             raise ValueError(f"{self.incoterm.value} 必须填写目的港 destination_port")
         if self.incoterm in PORT_FORBIDDEN and port is not None:
             raise ValueError(f"{self.incoterm.value} 的 destination_port 必须为空")
-        if self.incoterm in {Incoterm.CIF, Incoterm.DDP} and self.cost_breakdown.insurance <= 0:
-            raise ValueError("CIF 与 DDP 的保险必须单独列在 insurance，且金额大于 0")
+        assert_insurance_premium(
+            self.incoterm,
+            self.unit_price,
+            self.quantity,
+            self.cost_breakdown.insurance,
+        )
         if self.currency == "CNY" and self.fx_rate != Decimal(1):
             raise ValueError("报价币种是人民币时，fx_rate 必须是 1（1 人民币兑 1 人民币）")
         if self.valid_until <= self.created_at:

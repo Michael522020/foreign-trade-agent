@@ -12,9 +12,10 @@ Anfrage-Triage (P4) und Angebotsunterstützung (P5) sind nicht umgesetzt. Ohne e
 - Eine Anfrage mit vollständigen fünf Angaben muss vor dem Angebot trotzdem durch `NEEDS_INFO`.
 - `NOT_INTERESTED` und `NURTURE` setzen eine Antwort voraus und sind nur aus `REPLIED` erreichbar.
 - Mitarbeiterzahl: `UNKNOWN`, `1-10`, `11-50`, `51-200`, `201-500`, `501-1000`, `1001-5000`, `5001-10000`, `10001+`.
-- Jahresumsatz in US-Dollar: `UNKNOWN`, `UNDER_1M`, `1M_10M`, `10M_50M`, `50M_200M`, `200M_1B`, `OVER_1B`.
+- Jahresumsatz in Renminbi: `UNKNOWN`, `UNDER_1M_CNY` (unter 1 Mio. CNY), `1M_10M_CNY` (1–10 Mio.), `10M_50M_CNY` (10–50 Mio.), `50M_200M_CNY` (50–200 Mio.), `200M_1B_CNY` (200 Mio.–1 Mrd.), `OVER_1B_CNY` (über 1 Mrd.).
 - Ergebnis eines Kontakts: `NO_REPLY`, `REPLIED`, `POSITIVE`, `OBJECTION`, `MEETING_SET`, `NOT_INTERESTED`, `NURTURE`, `BOUNCED`, `UNSUBSCRIBED`, `WRONG_CONTACT`.
-- Bei CIF und DDP steht die Versicherung in einer eigenen Zeile `insurance`, und der Betrag muss größer als 0 sein.
+- Bei CIF und DDP steht die Versicherung in einer eigenen Zeile `insurance`. Der Betrag muss größer als 0 sein und der Prämie aus Rechnungssumme × 110 % × Prämiensatz entsprechen. Die 110 % sind bestätigt. Der Satz steht in `config/quotation.yaml` und ist noch ein Beispielwert.
+- Die Sanktionsprüfung vergleicht den Namen exakt und nur, wenn OFAC SDN, die EU-Konsolidierte Liste, die BIS Entity List und UK OFSI zusammen importiert sind. Fehlt eine Liste, wird gesperrt. Ein Treffer darf nicht manuell freigegeben werden.
 - Die Dringlichkeit einer Anfrage ist `LOW`, `NORMAL` oder `HIGH`.
 - Die Gewichte sind Passung 30, Fenster 20, Wechselhürde 15, Rolle 15, Größe 10, Erreichbarkeit 10. Die Mindestmenge ist 100 pcs, die Lieferzeit 30 days. Diese Werte sind als übliche Vorgabe bestätigt. Monatskapazität, Folgeabstände und Fehlerkosten bleiben Beispiele, bis das Geschäft sie gesondert bestätigt.
 
@@ -106,6 +107,6 @@ python -m src.cli report monthly --month 2026-10
 python -m src.cli gate check --lead-id <lead-id>
 ```
 
-`gate check` schreibt nur die Sperre oder die Freigabe in das Audit und sendet nichts. In der mitgelieferten Konfiguration ist die Authentifizierung nicht fertig und die Sanktionsliste nicht geladen, daher ist das Ergebnis eine Sperre.
+`gate check` schreibt nur die Sperre oder die Freigabe in das Audit und sendet nichts. In der mitgelieferten Konfiguration ist die Authentifizierung nicht fertig und keine der vier Sanktionslisten geladen, daher ist das Ergebnis eine Sperre.
 
 Bei zu kleiner Stichprobe sagt der Bericht, dass die Daten nicht reichen und kein Urteil möglich ist. Eine Steigerungsquote wird nicht ausgegeben.
