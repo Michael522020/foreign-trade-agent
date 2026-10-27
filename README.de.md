@@ -103,6 +103,9 @@ python -m src.cli queue --owner sales01 --date 2026-10-27 --format table
 python -m src.cli draft --queue daily --owner sales01 --dry-run
 python -m src.cli eval run --suite eval/golden_set/ --report reports/eval_2026-10-27.json
 python -m src.cli report monthly --month 2026-10
+python -m src.cli gate check --lead-id <lead-id>
 ```
+
+`gate check` schreibt nur die Sperre oder die Freigabe in das Audit und sendet nichts. In der mitgelieferten Konfiguration ist die Authentifizierung nicht fertig und die Sanktionsliste nicht geladen, daher ist das Ergebnis eine Sperre.
 
 Bei zu kleiner Stichprobe sagt der Bericht, dass die Daten nicht reichen und kein Urteil möglich ist. Eine Steigerungsquote wird nicht ausgegeben.

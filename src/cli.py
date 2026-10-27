@@ -7,14 +7,21 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from uuid import uuid4
+
 from sqlalchemy.orm import Session
 
+from src.compliance.config import load_gate_config
+from src.compliance.gate import SendTask, send_gate
 from src.db import make_engine, session_factory
 from src.eval.report import monthly_report, render_monthly
 from src.eval.runner import load_failure_cases, run_suite
 from src.ingest.adapters import ADAPTERS
 from src.ingest.pipeline import ingest_path
+from src.logging_config import bind_trace
 from src.models import Base
+from src.models.base import new_id
+from src.outreach.compose import approved_facts
 from src.outreach.draft import draft_daily
 from src.scoring.config import load_scoring, project_root
 from src.scoring.queue import build_daily_queue
@@ -126,6 +133,41 @@ def _cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_gate(args: argparse.Namespace) -> int:
+    if args.gate_command != "check":
+        print("用法：gate check --lead-id ...")
+        return 2
+    ctx = load_gate_config()
+    facts = approved_facts(load_scoring())
+    db = _session()
+    try:
+        result = send_gate(
+            db,
+            SendTask(
+                task_id=new_id(),
+                lead_id=args.lead_id,
+                body=args.body or "",
+                is_first_touch=True,
+                human_approved=False,
+            ),
+            ctx,
+            facts,
+            datetime.now(timezone.utc),
+        )
+        db.commit()
+    finally:
+        db.close()
+    if result.allowed:
+        print("允许")
+        return 0
+    print("拦截")
+    for reason in result.blocked_reasons:
+        print(reason)
+    for warning in result.warnings:
+        print(f"警告 {warning}")
+    return 2
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m src.cli")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -153,10 +195,16 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("report_command")
     report.add_argument("--month", required=True)
     report.set_defaults(func=_cmd_report)
+    gate = sub.add_parser("gate")
+    gate.add_argument("gate_command")
+    gate.add_argument("--lead-id", required=True)
+    gate.add_argument("--body", default="")
+    gate.set_defaults(func=_cmd_gate)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
+    bind_trace(uuid4().hex)
     parser = build_parser()
     args = parser.parse_args(argv)
     return int(args.func(args))

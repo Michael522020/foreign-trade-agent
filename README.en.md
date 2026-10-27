@@ -103,6 +103,9 @@ python -m src.cli queue --owner sales01 --date 2026-10-27 --format table
 python -m src.cli draft --queue daily --owner sales01 --dry-run
 python -m src.cli eval run --suite eval/golden_set/ --report reports/eval_2026-10-27.json
 python -m src.cli report monthly --month 2026-10
+python -m src.cli gate check --lead-id <lead-id>
 ```
+
+`gate check` records a block or an allow and does not send. With the shipped config, authentication is not ready and the sanctions list is not loaded, so the result is a block.
 
 When the sample is too small, the report says the data is insufficient and that no conclusion can be drawn. It does not print a lift percentage.

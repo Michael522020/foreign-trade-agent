@@ -1,0 +1,56 @@
+# 发送闸门。认证未就绪或制裁名单未导入时，闸门拒绝放行。
+auth:
+  spf_ready: false
+  dkim_ready: false
+  dmarc_aligned: false
+quota:
+  daily_cap: 20  # 示例值，上线前必须由业务确认
+rates:
+  complaint_block: "0.001"  # 示例值，上线前必须由业务确认
+  complaint_warn: "0.0008"  # 示例值，上线前必须由业务确认
+  bounce_block: "0.02"  # 示例值，上线前必须由业务确认
+freemail_domains:
+  - gmail.com
+  - googlemail.com
+  - yahoo.com
+  - qq.com
+  - 163.com
+  - outlook.com
+  - hotmail.com
+  - icloud.com
+blocked_countries:
+  - DE
+  - AU
+  - CA
+lia_required_countries:
+  - AT
+  - BE
+  - BG
+  - HR
+  - CY
+  - CZ
+  - DK
+  - EE
+  - FI
+  - FR
+  - GR
+  - HU
+  - IE
+  - IT
+  - LV
+  - LT
+  - LU
+  - MT
+  - NL
+  - PL
+  - PT
+  - RO
+  - SK
+  - SI
+  - ES
+  - SE
+  - GB
+lia_recorded_countries: []
+sanctions:
+  loaded: false
+  entities: []

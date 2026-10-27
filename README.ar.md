@@ -103,6 +103,9 @@ python -m src.cli queue --owner sales01 --date 2026-10-27 --format table
 python -m src.cli draft --queue daily --owner sales01 --dry-run
 python -m src.cli eval run --suite eval/golden_set/ --report reports/eval_2026-10-27.json
 python -m src.cli report monthly --month 2026-10
+python -m src.cli gate check --lead-id <lead-id>
 ```
+
+`gate check` يسجّل المنع أو السماح فقط ولا يرسل شيئًا. في الإعداد المرفق، المصادقة غير جاهزة وقائمة العقوبات غير محمّلة، لذا النتيجة هي المنع.
 
 إذا كانت العينة أصغر من اللازم، يقول التقرير إن البيانات غير كافية ولا يمكن الحكم. لا يكتب نسبة تحسّن.

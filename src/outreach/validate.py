@@ -58,6 +58,23 @@ def _subject_reasons(subject: str) -> list[str]:
     return reasons
 
 
+def find_unapproved_facts(body: str, facts: list[ApprovedFact]) -> list[str]:
+    allowed = {(fact.value, fact.unit.lower()) for fact in facts}
+    found: list[str] = []
+    for match in _FACT.finditer(body):
+        value = match.group(1)
+        if "." in value:
+            value = value.rstrip("0").rstrip(".")
+        unit = match.group(2).lower()
+        if (value, unit) not in allowed:
+            found.append(f"{value} {unit}")
+    return found
+
+
+def body_has_link(body: str) -> bool:
+    return _LINK.search(body) is not None
+
+
 def collect_reasons(
     subject: str,
     body: str,
@@ -73,18 +90,12 @@ def collect_reasons(
         reasons.append(REJECTED_TOO_SHORT)
     if count > 125:
         reasons.append(REJECTED_TOO_LONG)
-    if first_touch and _LINK.search(body):
+    if first_touch and body_has_link(body):
         reasons.append(REJECTED_FIRST_TOUCH_LINK)
     if _CE.search(body) and not cert_allowed:
         reasons.append(REJECTED_UNAPPROVED_CERT)
-    allowed = {(fact.value, fact.unit.lower()) for fact in facts}
-    for match in _FACT.finditer(body):
-        value = match.group(1)
-        if "." in value:
-            value = value.rstrip("0").rstrip(".")
-        unit = match.group(2).lower()
-        if (value, unit) not in allowed:
-            reasons.append(f"{REJECTED_UNAPPROVED_FACT}:{value} {unit}")
+    for item in find_unapproved_facts(body, facts):
+        reasons.append(f"{REJECTED_UNAPPROVED_FACT}:{item}")
     return list(dict.fromkeys(reasons))
 
 

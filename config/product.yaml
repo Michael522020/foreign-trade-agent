@@ -1,8 +1,8 @@
 # 我方产品事实。开发信只能引用这里出现过的数字。
 seller_name: "SYN-SELLER"
 category_en: "furniture"
-category_pt: "moveis"
-category_de: "Moebel"
+category_pt: "móveis"
+category_de: "Möbel"
 our_hs_codes:
   - "940360"
 scale:

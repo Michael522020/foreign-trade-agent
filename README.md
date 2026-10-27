@@ -103,6 +103,9 @@ python -m src.cli queue --owner sales01 --date 2026-10-27 --format table
 python -m src.cli draft --queue daily --owner sales01 --dry-run
 python -m src.cli eval run --suite eval/golden_set/ --report reports/eval_2026-10-27.json
 python -m src.cli report monthly --month 2026-10
+python -m src.cli gate check --lead-id <线索号>
 ```
+
+`gate check` 只做拦截和审计，不发送。默认认证未就绪、制裁名单未导入，所以结果是拦截。
 
 评估样本不足时，报告写「数据不足」和「暂不能判断」，不写提升百分比。

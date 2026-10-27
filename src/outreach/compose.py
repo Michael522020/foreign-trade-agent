@@ -31,8 +31,8 @@ def compose_subject(language: str, config: ScoringConfig) -> str:
     del config
     subjects = {
         "en": "Second source for furniture",
-        "de": "Zweite Quelle fuer Moebel",
-        "pt": "Segunda fonte de moveis",
+        "de": "Zweite Quelle für Möbel",
+        "pt": "Segunda fonte de móveis",
     }
     return subjects[language]
 
@@ -62,25 +62,25 @@ def compose_body(language: str, config: ScoringConfig, contact_name: str) -> str
     elif language == "de":
         sentences = [
             f"Guten Tag {name}, ich schreibe, weil Ihr Unternehmen {category} importiert und die Kategorie weiterhin aktiv wirkt.",
-            "Eine zweite Fabrik lohnt einen kurzen Blick, wenn ein Lieferant bereits den groessten Teil des Volumens traegt.",
-            f"Wir fertigen {category} fuer Importeure, die diese Kategorie bereits einkaufen.",
-            f"Unsere Mindestbestellmenge betraegt {moq} {moq_unit}.",
-            f"Die uebliche Produktionszeit betraegt {lead} {lead_unit} nach Eingang der Anzahlung.",
-            "In dieser ersten Nachricht haenge ich keinen Katalog und keinen Link an.",
-            "Wenn Sie neue Fabriken pruefen, antworten Sie bitte mit den Punkten, die Ihnen wichtig sind, etwa Material, Verpackung und Pruefung.",
-            "Wenn diese Nachricht nicht nuetzlich ist, reply no und ich stoppe.",
+            "Eine zweite Fabrik lohnt einen kurzen Blick, wenn ein Lieferant bereits den größten Teil des Volumens trägt.",
+            f"Wir fertigen {category} für Importeure, die diese Kategorie bereits einkaufen.",
+            f"Unsere Mindestbestellmenge beträgt {moq} {moq_unit}.",
+            f"Die übliche Produktionszeit beträgt {lead} {lead_unit} nach Eingang der Anzahlung.",
+            "In dieser ersten Nachricht hänge ich keinen Katalog und keinen Link an.",
+            "Wenn Sie neue Fabriken prüfen, antworten Sie bitte mit den Punkten, die Ihnen wichtig sind, etwa Material, Verpackung und Prüfung.",
+            "Wenn diese Nachricht nicht nützlich ist, reply no und ich stoppe.",
             seller,
         ]
     else:
         sentences = [
-            f"Ola {name}, escrevo porque a sua empresa importa {category} e a categoria continua ativa.",
-            "Uma segunda fabrica merece um olhar curto quando um fornecedor ja leva a maior parte do volume.",
-            f"Fabricamos {category} para importadores que ja compram esta categoria.",
-            f"A quantidade minima e {moq} {moq_unit}.",
-            f"O prazo habitual de producao e {lead} {lead_unit} depois do deposito.",
-            "Nesta primeira mensagem nao envio catalogo nem link.",
-            "Se voce avalia novas fabricas, responda com os pontos que importam, como material, embalagem e inspecao.",
-            "Se esta mensagem nao for util, reply no e eu paro.",
+            f"Olá {name}, escrevo porque a sua empresa importa {category} e a categoria continua ativa.",
+            "Uma segunda fábrica merece um olhar curto quando um fornecedor já leva a maior parte do volume.",
+            f"Fabricamos {category} para importadores que já compram esta categoria.",
+            f"A quantidade mínima é {moq} {moq_unit}.",
+            f"O prazo habitual de produção é {lead} {lead_unit} depois do depósito.",
+            "Nesta primeira mensagem não envio catálogo nem link.",
+            "Se você avalia novas fábricas, responda com os pontos que importam, como material, embalagem e inspeção.",
+            "Se esta mensagem não for útil, reply no e eu paro.",
             seller,
         ]
     return " ".join(sentences)

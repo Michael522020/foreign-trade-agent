@@ -103,6 +103,9 @@ python -m src.cli queue --owner sales01 --date 2026-10-27 --format table
 python -m src.cli draft --queue daily --owner sales01 --dry-run
 python -m src.cli eval run --suite eval/golden_set/ --report reports/eval_2026-10-27.json
 python -m src.cli report monthly --month 2026-10
+python -m src.cli gate check --lead-id <lead-id>
 ```
+
+`gate check` solo deja constancia del bloqueo o del permiso y no envía nada. En la configuración incluida, la autenticación no está lista y la lista de sanciones no está cargada, así que el resultado es un bloqueo.
 
 Si la muestra es pequeña, el informe dice que los datos no bastan y que no se puede concluir. No escribe un porcentaje de mejora.

@@ -103,6 +103,9 @@ python -m src.cli queue --owner sales01 --date 2026-10-27 --format table
 python -m src.cli draft --queue daily --owner sales01 --dry-run
 python -m src.cli eval run --suite eval/golden_set/ --report reports/eval_2026-10-27.json
 python -m src.cli report monthly --month 2026-10
+python -m src.cli gate check --lead-id <lead-id>
 ```
+
+`gate check` n'enregistre qu'un blocage ou un feu vert et n'envoie rien. Dans la configuration livrée, l'authentification n'est pas prête et la liste de sanctions n'est pas chargée, donc le résultat est un blocage.
 
 Si l'échantillon est trop petit, le rapport dit que les données sont insuffisantes et qu'aucune conclusion n'est possible. Il n'affiche pas de pourcentage de gain.
