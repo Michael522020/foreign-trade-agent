@@ -126,9 +126,52 @@ class InquiryType(str, Enum):
 
 
 class Urgency(str, Enum):
+    """业务已确认：询盘紧急度只用这三档。"""
+
     LOW = "LOW"
     NORMAL = "NORMAL"
     HIGH = "HIGH"
+
+
+class EmployeeBand(str, Enum):
+    """员工人数，沿用采购侧常用的人数分段。"""
+
+    UNKNOWN = "UNKNOWN"
+    BAND_1_10 = "1-10"
+    BAND_11_50 = "11-50"
+    BAND_51_200 = "51-200"
+    BAND_201_500 = "201-500"
+    BAND_501_1000 = "501-1000"
+    BAND_1001_5000 = "1001-5000"
+    BAND_5001_10000 = "5001-10000"
+    BAND_10001_PLUS = "10001+"
+
+
+class AnnualRevenueBand(str, Enum):
+    """年营收，美元口径，沿用买家分层的常用档。"""
+
+    UNKNOWN = "UNKNOWN"
+    UNDER_1M = "UNDER_1M"
+    FROM_1M_TO_10M = "1M_10M"
+    FROM_10M_TO_50M = "10M_50M"
+    FROM_50M_TO_200M = "50M_200M"
+    FROM_200M_TO_1B = "200M_1B"
+    OVER_1B = "OVER_1B"
+
+
+class InteractionOutcome(str, Enum):
+    """一次跟进的结果，沿用外贸 CRM 的常用结案。"""
+
+    NO_REPLY = "NO_REPLY"
+    REPLIED = "REPLIED"
+    POSITIVE = "POSITIVE"
+    OBJECTION = "OBJECTION"
+    MEETING_SET = "MEETING_SET"
+    NOT_INTERESTED = "NOT_INTERESTED"
+    NURTURE = "NURTURE"
+    BOUNCED = "BOUNCED"
+    UNSUBSCRIBED = "UNSUBSCRIBED"
+    WRONG_CONTACT = "WRONG_CONTACT"
 
 
 class QuotationStatus(str, Enum):

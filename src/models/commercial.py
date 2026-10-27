@@ -71,6 +71,11 @@ class Quotation(Base):
             "valid_until > created_at",
             name="ck_quotation_valid_until",
         ),
+        CheckConstraint(
+            "incoterm NOT IN ('CIF', 'DDP') "
+            "OR CAST(json_extract(cost_breakdown, '$.insurance') AS NUMERIC) > 0",
+            name="ck_quotation_cif_ddp_insurance",
+        ),
         Index("ix_quotation_valid_until", "valid_until"),
         Index("ix_quotation_status", "status"),
     )
@@ -89,7 +94,11 @@ class Quotation(Base):
     unit_price: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     cost_breakdown: Mapped[dict[str, str]] = mapped_column(JSON, nullable=False)
-    fx_rate: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False)
+    fx_rate: Mapped[Decimal] = mapped_column(
+        Numeric(18, 8),
+        nullable=False,
+        doc="1 单位报价币种兑多少人民币",
+    )
     fx_rate_source: Mapped[str] = mapped_column(String(100), nullable=False)
     fx_rate_at: Mapped[datetime] = mapped_column(AwareDateTime(), nullable=False)
     valid_until: Mapped[datetime] = mapped_column(AwareDateTime(), nullable=False)

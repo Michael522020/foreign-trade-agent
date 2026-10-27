@@ -220,6 +220,14 @@ def add_quotation(
     fx_source = fixture["fx_rate_source"]
     if not isinstance(fx_rate, str) or not isinstance(fx_source, str):
         raise RuntimeError("夹具汇率字段类型不对")
+    breakdown = cost_fields(material)
+    if incoterm in {Incoterm.CIF, Incoterm.DDP}:
+        premium = Decimal("1")
+        material_amount = Decimal(material) - premium
+        if material_amount < 0:
+            raise RuntimeError("合成报价扣掉保险后材料成本为负")
+        breakdown["insurance"] = format(premium, "f")
+        breakdown["material_cost"] = format(material_amount, "f")
     row = Quotation(
         id=new_id(),
         inquiry_id=graph.inquiry.id,
@@ -231,7 +239,7 @@ def add_quotation(
         payment_terms=payment_terms,
         unit_price=Decimal(unit_price),
         currency="USD",
-        cost_breakdown=cost_fields(material),
+        cost_breakdown=breakdown,
         fx_rate=Decimal(fx_rate),
         fx_rate_source=fx_source,
         fx_rate_at=created_at,

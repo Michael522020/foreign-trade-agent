@@ -12,6 +12,7 @@ from src.models.enums import (
     Channel,
     ComplianceDecision,
     Direction,
+    InteractionOutcome,
     SuppressionReason,
     SuppressionScope,
 )
@@ -46,8 +47,17 @@ class Suppression(Base):
     source_ref: Mapped[str | None] = mapped_column(String(200))
 
 
+_OUTCOME_SQL = ", ".join(f"'{item.value}'" for item in InteractionOutcome)
+
+
 class Interaction(Base):
     __tablename__ = "interaction"
+    __table_args__ = (
+        CheckConstraint(
+            f"outcome IS NULL OR outcome IN ({_OUTCOME_SQL})",
+            name="ck_interaction_outcome",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(ID_COL, primary_key=True)
     lead_id: Mapped[str] = mapped_column(ForeignKey("lead.id"), nullable=False)

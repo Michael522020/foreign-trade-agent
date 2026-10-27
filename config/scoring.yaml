@@ -1,10 +1,10 @@
 weights:
-  demand_fit: 30  # 示例值，上线前必须由业务确认
-  window: 20  # 示例值，上线前必须由业务确认
-  switchability: 15  # 示例值，上线前必须由业务确认
-  role_access: 15  # 示例值，上线前必须由业务确认
-  scale_fit: 10  # 示例值，上线前必须由业务确认
-  reachability: 10  # 示例值，上线前必须由业务确认
+  demand_fit: 30  # 业务已确认：按惯例采用
+  window: 20  # 业务已确认：按惯例采用
+  switchability: 15  # 业务已确认：按惯例采用
+  role_access: 15  # 业务已确认：按惯例采用
+  scale_fit: 10  # 业务已确认：按惯例采用
+  reachability: 10  # 业务已确认：按惯例采用
 window_days:
   recent: 90  # 示例值，上线前必须由业务确认
   mid: 180  # 示例值，上线前必须由业务确认

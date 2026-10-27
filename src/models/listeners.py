@@ -13,9 +13,9 @@ from src.errors import ConstraintViolation
 from src.models.base import new_id, utcnow
 from src.models.catalog import Certification, Product
 from src.models.commercial import Inquiry, Quotation
-from src.models.compliance import Suppression
+from src.models.compliance import Interaction, Suppression
 from src.models.cost import parse_cost, snapshot_cost
-from src.models.enums import InquiryStatus, LeadStage, QuotationStatus
+from src.models.enums import InquiryStatus, InteractionOutcome, LeadStage, QuotationStatus
 from src.models.parties import Company, Contact, Lead
 from src.models.schemas import CompanyIn, ContactIn, QuotationIn, SuppressionIn, reject_validation
 from src.models.state_machine import (
@@ -115,6 +115,8 @@ def _company_write(mapper: Mapper[Company], connection: object, target: Company)
                 "hs_codes": list(target.hs_codes or []),
                 "domain": target.domain,
                 "website": target.website,
+                "employee_band": target.employee_band,
+                "annual_revenue_band": target.annual_revenue_band,
             }
         )
     except ValidationError as exc:
@@ -123,6 +125,10 @@ def _company_write(mapper: Mapper[Company], connection: object, target: Company)
     target.domain = parsed.domain
     target.website = parsed.website
     target.hs_codes = parsed.hs_codes
+    target.employee_band = None if parsed.employee_band is None else parsed.employee_band.value
+    target.annual_revenue_band = (
+        None if parsed.annual_revenue_band is None else parsed.annual_revenue_band.value
+    )
 
 
 def _contact_write(mapper: Mapper[Contact], connection: object, target: Contact) -> None:
@@ -310,6 +316,26 @@ def _suppression_write(mapper: Mapper[Suppression], connection: object, target: 
     target.domain = parsed.domain
 
 
+def _interaction_write(mapper: Mapper[Interaction], connection: object, target: Interaction) -> None:
+    del mapper, connection
+    if not target.id:
+        target.id = new_id()
+    if target.outcome is None or target.outcome == "":
+        target.outcome = None
+        return
+    raw = target.outcome.value if isinstance(target.outcome, InteractionOutcome) else target.outcome
+    try:
+        parsed = InteractionOutcome(raw)
+    except ValueError as exc:
+        raise ConstraintViolation(
+            "outcome",
+            "交互结果不在约定取值内",
+            value=raw,
+            record_id=target.id,
+        ) from exc
+    target.outcome = parsed.value
+
+
 def register_listeners() -> None:
     global _REGISTERED
     if _REGISTERED:
@@ -330,4 +356,6 @@ def register_listeners() -> None:
     event.listen(Product, "before_update", _product_write)
     event.listen(Suppression, "before_insert", _suppression_write)
     event.listen(Suppression, "before_update", _suppression_write)
+    event.listen(Interaction, "before_insert", _interaction_write)
+    event.listen(Interaction, "before_update", _interaction_write)
     _REGISTERED = True

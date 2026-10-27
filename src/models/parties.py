@@ -19,11 +19,33 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models.base import ID_COL, AwareDateTime, Base, enum_col
-from src.models.enums import BuyerType, ContactChannel, ContactRole, EmailStatus, LeadStage
+from src.models.enums import (
+    AnnualRevenueBand,
+    BuyerType,
+    ContactChannel,
+    ContactRole,
+    EmailStatus,
+    EmployeeBand,
+    LeadStage,
+)
+
+
+def _sql_in(enum_cls: type[EmployeeBand] | type[AnnualRevenueBand]) -> str:
+    return ", ".join(f"'{item.value}'" for item in enum_cls)
 
 
 class Company(Base):
     __tablename__ = "company"
+    __table_args__ = (
+        CheckConstraint(
+            f"employee_band IS NULL OR employee_band IN ({_sql_in(EmployeeBand)})",
+            name="ck_company_employee_band",
+        ),
+        CheckConstraint(
+            f"annual_revenue_band IS NULL OR annual_revenue_band IN ({_sql_in(AnnualRevenueBand)})",
+            name="ck_company_annual_revenue_band",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(ID_COL, primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)

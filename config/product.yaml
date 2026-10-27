@@ -6,7 +6,7 @@ category_de: "Moebel"
 our_hs_codes:
   - "940360"
 scale:
-  moq: 100  # 示例值，上线前必须由业务确认
+  moq: 100  # 业务已确认：按惯例采用，单位 pcs
   monthly_capacity: 2000  # 示例值，上线前必须由业务确认
 sequence_offsets_days:
   - 0  # 示例值，上线前必须由业务确认
@@ -15,10 +15,10 @@ sequence_offsets_days:
   - 21  # 示例值，上线前必须由业务确认
 facts:
   moq:
-    value: 100  # 示例值，上线前必须由业务确认
+    value: 100  # 业务已确认：按惯例采用
     unit: pcs
     src: config/product.yaml
   lead_time:
-    value: 30  # 示例值，上线前必须由业务确认
+    value: 30  # 业务已确认：按惯例采用，单位 days
     unit: days
     src: config/product.yaml

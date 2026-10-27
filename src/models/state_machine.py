@@ -308,6 +308,13 @@ def _block_high_risk(current: QuotationStatus, payment: PaymentTerms, target: Qu
 def _apply_lead(entity: object, event: LeadEvent) -> None:
     current = _coerce(LeadStage, getattr(entity, "stage", None), "stage")
     edge = _LEAD[event]
+    if event in {LeadEvent.MARK_NOT_INTERESTED, LeadEvent.NURTURE} and current != LeadStage.REPLIED:
+        raise InvalidTransition(
+            current.value,
+            edge.target.value,
+            [LeadStage.REPLIED.value],
+            reason="必须先有回复，才能标为无兴趣或培育",
+        )
     _check(current, edge, LEAD_TERMINALS)
     if event == LeadEvent.SCORE:
         assert_score_for_stage(
@@ -326,6 +333,20 @@ def _apply_inquiry(entity: object, event: InquiryEvent) -> None:
         raise TypeError("InquiryEvent 只能用于询盘")
     current = _coerce(InquiryStatus, getattr(entity, "status", None), "status")
     edge = _INQUIRY[event]
+    if event == InquiryEvent.MARK_QUOTED and current != InquiryStatus.NEEDS_INFO:
+        missing = getattr(entity, "missing_info", None)
+        complete = isinstance(missing, list) and len(missing) == 0
+        reason = (
+            "五要素齐全也必须先进入 NEEDS_INFO，不能直接报价"
+            if complete
+            else "报价前必须处于 NEEDS_INFO"
+        )
+        raise InvalidTransition(
+            current.value,
+            edge.target.value,
+            [InquiryStatus.NEEDS_INFO.value],
+            reason=reason,
+        )
     _check(current, edge, INQUIRY_TERMINALS)
     setattr(entity, "status", edge.target)
     _emit_transition(entity, event, current.value, edge.target.value)

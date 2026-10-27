@@ -9,7 +9,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from src.errors import ConstraintViolation
-from src.models.enums import ContactRole, EmailStatus, LeadStage
+from src.models.enums import AnnualRevenueBand, ContactRole, EmailStatus, EmployeeBand, LeadStage
 from src.models.parties import Lead
 from src.models.state_machine import LeadEvent, transition
 from src.scoring.config import DIMENSIONS, ScoringConfig
@@ -75,9 +75,9 @@ def score_lead(session: Session, lead: Lead, config: ScoringConfig, as_of: datet
     if contact.role is None:
         contact.role = ContactRole.UNKNOWN
     if not company.employee_band:
-        company.employee_band = "UNKNOWN"
+        company.employee_band = EmployeeBand.UNKNOWN.value
     if not company.annual_revenue_band:
-        company.annual_revenue_band = "UNKNOWN"
+        company.annual_revenue_band = AnnualRevenueBand.UNKNOWN.value
     bands: dict[str, Decimal] = {}
     missing: list[str] = []
     reasons: list[str] = []
