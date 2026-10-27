@@ -1,0 +1,34 @@
+weights:
+  demand_fit: 30  # 示例值，上线前必须由业务确认
+  window: 20  # 示例值，上线前必须由业务确认
+  switchability: 15  # 示例值，上线前必须由业务确认
+  role_access: 15  # 示例值，上线前必须由业务确认
+  scale_fit: 10  # 示例值，上线前必须由业务确认
+  reachability: 10  # 示例值，上线前必须由业务确认
+window_days:
+  recent: 90  # 示例值，上线前必须由业务确认
+  mid: 180  # 示例值，上线前必须由业务确认
+  year: 365  # 示例值，上线前必须由业务确认
+window_factors:
+  within_90_days: "1"  # 示例值，上线前必须由业务确认
+  within_180_days: "0.6"  # 示例值，上线前必须由业务确认
+  within_365_days: "0.3"  # 示例值，上线前必须由业务确认
+  older: "0.1"  # 示例值，上线前必须由业务确认
+switch_thresholds:
+  open_below: "0.50"  # 示例值，上线前必须由业务确认
+  closed_above: "0.70"  # 示例值，上线前必须由业务确认
+switch_factors:
+  open: "1"  # 示例值，上线前必须由业务确认
+  mid: "0.5"  # 示例值，上线前必须由业务确认
+  closed: "0.2"  # 示例值，上线前必须由业务确认
+reachability:
+  verified: "1"  # 示例值，上线前必须由业务确认
+  risky: "0.4"  # 示例值，上线前必须由业务确认
+  unknown: "0.2"  # 示例值，上线前必须由业务确认
+  invalid: "0"  # 示例值，上线前必须由业务确认
+  whatsapp_bonus: "0.2"  # 示例值，上线前必须由业务确认
+scale_batch_factor: 10  # 示例值，上线前必须由业务确认
+queue:
+  daily_cap: 30  # 示例值，上线前必须由业务确认
+  new_customer_cap: 15  # 示例值，上线前必须由业务确认
+  min_confidence: "0.6"  # 示例值，上线前必须由业务确认

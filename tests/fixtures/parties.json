@@ -1,0 +1,43 @@
+{
+  "source": "synthetic",
+  "fx_rate": "7.10000000",
+  "fx_rate_source": "synthetic-fixture",
+  "companies": [
+    {
+      "key": "a",
+      "name": "SYN-COMPANY-A",
+      "country": "DE",
+      "domain": "syn-company-a.example",
+      "buyer_type": "IMPORTER",
+      "source": "synthetic",
+      "source_url": "fixture://tests/fixtures/parties.json#a",
+      "industry": "synthetic"
+    },
+    {
+      "key": "b",
+      "name": "SYN-COMPANY-B",
+      "country": "US",
+      "domain": "syn-company-b.example",
+      "buyer_type": "DISTRIBUTOR",
+      "source": "synthetic",
+      "source_url": "fixture://tests/fixtures/parties.json#b",
+      "industry": "synthetic"
+    }
+  ],
+  "contacts": [
+    {
+      "company": "a",
+      "full_name": "SYN-CONTACT-A",
+      "email": "buyer-a@syn-company-a.example",
+      "role": "PURCHASING_MANAGER",
+      "source": "synthetic",
+      "source_url": "fixture://tests/fixtures/parties.json#contact-a"
+    }
+  ],
+  "product": {
+    "sku": "SYN-SKU-1",
+    "name_en": "Synthetic sample sku",
+    "hs_code": "940360",
+    "category": "synthetic"
+  }
+}

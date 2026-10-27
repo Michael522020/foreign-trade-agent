@@ -1,0 +1,16 @@
+[
+  {
+    "case_id": "syn-miss-rfq",
+    "source": "synthetic",
+    "note": "真实询盘被当成询价，仅用于排序演示",
+    "cost": 10,
+    "frequency": 2
+  },
+  {
+    "case_id": "syn-probe-to-spam",
+    "source": "synthetic",
+    "note": "询价被当成群发",
+    "cost": 100,
+    "frequency": 1
+  }
+]

@@ -1,0 +1,28 @@
+# 结构种子：认证类型与 3 条 HS 编码样例。不是客户数据。
+
+certification_types:
+  - CE
+  - FDA
+  - RoHS
+  - REACH
+  - UL
+  - ISO9001
+  - BSCI
+  - FSC
+  - CARB
+  - cUL
+  - FCC
+  - SASO
+  - GCC
+  - PSE
+  - JIS
+  - RCM
+  - CFIA
+
+hs_code_samples:
+  - code: "940360"
+    description_zh: "其他木制家具"  # 示例值，上线前必须由业务确认
+  - code: "630790"
+    description_zh: "其他制成品纺织品"  # 示例值，上线前必须由业务确认
+  - code: "392410"
+    description_zh: "塑料制餐具及厨房用具"  # 示例值，上线前必须由业务确认

@@ -1,0 +1,21 @@
+# 错分代价。数字是评估规格里的示例，上线前必须由业务确认。
+min_sample_size: 200  # 示例值，上线前必须由业务确认
+required_class_counts:
+  REAL_RFQ: 50  # 示例值，上线前必须由业务确认
+  PRICE_PROBE: 30  # 示例值，上线前必须由业务确认
+  COMPETITOR_PROBE: 20  # 示例值，上线前必须由业务确认
+  SPAM_BLAST: 10  # 示例值，上线前必须由业务确认
+default_mismatch: 1  # 示例值，上线前必须由业务确认
+pairs:
+  - expected: PRICE_PROBE
+    predicted: SPAM_BLAST
+    cost: 100  # 示例值，上线前必须由业务确认
+  - expected: REAL_RFQ
+    predicted: SPAM_BLAST
+    cost: 200  # 示例值，上线前必须由业务确认
+  - expected: SPAM_BLAST
+    predicted: PRICE_PROBE
+    cost: 1  # 示例值，上线前必须由业务确认
+  - expected: REAL_RFQ
+    predicted: PRICE_PROBE
+    cost: 10  # 示例值，上线前必须由业务确认

@@ -1,0 +1,183 @@
+---
+description: 触达与数据合规闸门；所有外发动作的前置检查，必须 fail-closed
+globs: ["src/outreach/**/*.py", "src/compliance/**/*.py", "outbox/**/*"]
+alwaysApply: true
+---
+
+# 合规闸门（fail-closed）
+
+外贸获客系统的外发动作，同时受三套规则约束。**任何一套不过，就不能发。**
+
+| 规则手册 | 谁在执行 | 违反后果 |
+|---|---|---|
+| 法律 | 当地监管 | 罚款（GDPR 最高 2000 万欧元或全球营收 4%；CAN-SPAM 每封最高约 5.3 万美元） |
+| 邮箱服务商 | Google / Yahoo / Microsoft | 进垃圾箱、域名被限流、硬拒（Microsoft 550 5.7.15） |
+| 收件人耐心 | 客户本人 | 举报 → 投诉率超标 → 连带前两条一起崩 |
+
+---
+
+## 1. 发送前强制检查清单（缺一项即 `BLOCKED`）
+
+```python
+@dataclass(frozen=True)
+class SendGateResult:
+    allowed: bool
+    blocked_reasons: list[str]   # 非空时必须 allowed=False
+    warnings: list[str]
+```
+
+按顺序检查，**任意一项失败立即返回，不继续**：
+
+| # | 检查项 | 判定 | 失败码 |
+|---|---|---|---|
+| 1 | 邮箱在抑制名单中 | 存在 → 拦截 | `IN_SUPPRESSION_LIST` |
+| 2 | 是否曾退订/投诉 | 是 → 永久拦截（跨域名、跨活动） | `PREVIOUSLY_OPTED_OUT` |
+| 3 | 邮箱是否通过验证 | 未验证或 `risky`/`invalid` → 拦截 | `EMAIL_NOT_VERIFIED` |
+| 4 | 是否企业邮箱 | 免费邮箱（gmail/yahoo/qq/163 等个人域）+ B2B 场景 → 警告，不拦截 | `FREEMAIL_ADDRESS` |
+| 5 | 当日该发件箱已发量 | ≥ 上限 → 拦截 | `DAILY_QUOTA_EXCEEDED` |
+| 6 | 域名认证状态 | SPF/DKIM/DMARC 任一缺失或未对齐 → 拦截 | `AUTH_NOT_READY` |
+| 7 | 该域名近 7 日投诉率 | ≥ 0.1% → 拦截；≥ 0.08% → 警告 | `COMPLAINT_RATE_HIGH` |
+| 8 | 该域名近 7 日退信率 | ≥ 2% → 拦截 | `BOUNCE_RATE_HIGH` |
+| 9 | 收件人所在司法辖区 | 命中高风险辖区规则 → 按辖区策略处理 | `JURISDICTION_RESTRICTED` |
+| 10 | 收件人企业是否在制裁名单 | OFAC SDN / EU Consolidated / BIS Entity List 命中 → 拦截 | `SANCTIONED_ENTITY` |
+| 11 | 首封邮件是否含链接/图片/附件 | 含 → 降级为纯文本（警告，不拦截） | `FIRST_TOUCH_HAS_LINK` |
+| 12 | 正文是否含未批准的价格/MOQ/交期/认证声明 | 含 → 拦截 | `UNAPPROVED_COMMERCIAL_TERM` |
+| 13 | 是否已有人工审批记录 | 无 → 拦截（`status=pending_review` 只能停留在 outbox） | `NO_HUMAN_APPROVAL` |
+
+**第 12 项是外贸场景独有的、也是最容易漏的一项。**
+检测方式不是关键词匹配（"MOQ 500" 和 "500 pcs minimum" 都要抓），而是：
+正文中所有数字 + 单位组合，必须能在本次任务注入的 `approved_facts` 集合中找到来源。
+找不到 → 拦截并回传「未授权事实：`500 pcs`」。
+
+---
+
+## 2. 各渠道的额外约束
+
+### 2.1 冷邮件
+
+**技术前提（不满足就别开始发）**
+- SPF、DKIM、DMARC 全部配置且 **DMARC 对齐**
+- 使用独立发信域（如 `mail.yourbrand.com`），不要用主域名裸发
+- 域名预热 3–4 周，从每日 5–10 封递增
+- 每发件箱每日上限：**新域 20–30 封，成熟域 30–40 封**（超过即触发限流）
+- 支持 RFC 8058 一键退订（`List-Unsubscribe` + `List-Unsubscribe-Post` 头），**落地页链接不算**
+
+**内容硬约束**
+- 首封：纯文本，无链接、无图片、无附件、无 HTML
+- 长度：75–125 词
+- 每封必须有：真实发件人身份、真实物理地址、可用退订方式
+- 主题行不得伪造（禁止假 `Re:` / `Fwd:`）
+- 退订请求：GDPR 辖区 72 小时内处理；CAN-SPAM 10 个工作日内
+
+**法律前提**
+| 辖区 | 依据 | 系统要求 |
+|---|---|---|
+| 美国 | CAN-SPAM，无需事前同意 | 真实头信息 + 物理地址 + 有效退订 |
+| 欧盟/英国 | GDPR 合法利益（Art. 6(1)(f)）+ ePrivacy | 必须有 **LIA（合法利益评估）记录**、与企业职务相关、披露数据来源、可随时反对 |
+| 德国 | UWG 要求"推定同意"，严于 GDPR 基线 | 默认 **不自动外发**，仅生成草稿交由本地团队判断 |
+| 加拿大 | CASL，需明示或默示同意 | 仅可触达「公开披露且未声明拒收」的企业地址，且内容须与该职务相关；否则拦截 |
+| 澳洲 | Spam Act 2003，需同意 | 默认拦截 |
+
+**规则**：`LIA` 不是文案，是**每个 campaign 一条结构化记录**（目标群体、相关性论证、数据来源、保留期限、反对处理方式）。没有 LIA 记录的 EU campaign，`SendGate` 直接返回 `JURISDICTION_RESTRICTED`。
+
+### 2.2 WhatsApp
+
+- **只允许官方 WhatsApp Business Platform（Cloud API）**。
+- 禁止：非官方接口、模拟客户端、多开工具、群发器、修改版客户端——这些是封号的头号原因，也让公司失去申诉立场。
+- 模板消息（template message）必须预先提交 Meta 审核通过，才能主动发起对话。
+- 用户 24 小时会话窗口外，只能发已审核模板。
+- 号码须为客户**主动提供或明确同意**接收（展会名片、客户留资、客户先加你）。
+- 系统行为：无 `whatsapp_consent` 记录 → 拦截。
+
+### 2.3 LinkedIn
+
+- **禁止任何自动加好友、自动私信、自动抓取**。违反 LinkedIn 用户协议，账号封禁且不可申诉。
+- 允许：人工在 LinkedIn 操作 + 系统提供「今日该联系谁 + 该说什么」的建议卡片。
+- 允许：LinkedIn 官方 Talent/ Sales Navigator API（如有正式权限）。
+- 系统行为：`channel=LINKEDIN` 的产出只能是 `suggestion_card`，不能是 `send_task`。
+
+### 2.4 数据采集本身
+
+| 来源 | 合规边界 |
+|---|---|
+| 海关数据 | 商用数据服务商授权范围内使用；不得二次转售原始记录 |
+| 展会名录 | 主办方授权范围；通常禁止转售，允许自用触达 |
+| 官网/LinkedIn 公开信息 | 可采集公开的企业联系方式；**不得采集个人隐私**（私人手机、私人邮箱） |
+| Google Maps | 公开商户信息，可采集 |
+| 爬虫 | 遵守 robots.txt；不得绕过登录/验证码；不得高频请求 |
+| 购买名单 | 必须能提供来源证明（GDPR 要求披露数据来源） |
+
+**规则**：每条 `Contact` 必须存 `source` + `source_url` + `collected_at`。
+无来源记录的 contact，不允许进入触达队列。这不只是合规，也是数据质量——来源不明的名单退信率极高。
+
+---
+
+## 3. 抑制名单（Suppression List）是一等公民
+
+```sql
+CREATE TABLE suppression (
+    id            INTEGER PRIMARY KEY,
+    email         TEXT,              -- 与 phone 至少一项非空
+    phone         TEXT,
+    domain        TEXT,              -- 支持整域抑制
+    reason        TEXT NOT NULL,     -- unsubscribed / complained / hard_bounce / manual / legal_request
+    scope         TEXT NOT NULL,     -- global / campaign / channel
+    created_at    TIMESTAMP NOT NULL,
+    source_ref    TEXT               -- 哪次发送、哪个活动触发的
+);
+```
+
+**规则**：
+1. 抑制是**永久**的，跨活动、跨发信域、跨年度。不允许"清理旧名单"。
+2. 查询在发送前**同步执行**，不允许依赖异步队列（否则有竞态窗口）。
+3. `reason=complained` 的记录，必须同时触发该发件箱的熔断（暂停 24h）。
+4. 抑制名单**独立存储**，不与 `Contact` 表级联删除。删联系人不能解除抑制。
+
+---
+
+## 4. fail-closed 的实现形态
+
+```python
+def send_gate(task: SendTask, ctx: GateContext) -> SendGateResult:
+    # 任何一项检查抛异常 → 视为不通过，不允许默认放行
+    try:
+        reasons = _collect_blockers(task, ctx)
+    except Exception as e:
+        log.error("gate_check_failed", lead_id=task.lead_id, error=str(e))
+        return SendGateResult(allowed=False,
+                              blocked_reasons=["GATE_CHECK_ERROR"],
+                              warnings=[])
+    return SendGateResult(allowed=not reasons, blocked_reasons=reasons, warnings=...)
+```
+
+**反例（禁止出现）**：
+```python
+try:
+    check()
+except:
+    pass          # ← 直接拒绝提交这类代码
+```
+
+---
+
+## 5. 出口管制与制裁筛查
+
+触达前必须查：
+- 企业实体是否在 **OFAC SDN List**、**EU Consolidated List**、**BIS Entity List**、**UK OFSI List**
+- 产品是否属于**两用物项**（EU 2021/821 附件 I、中国两用物项出口管制清单）
+- 目的国是否在禁运/受限清单
+
+命中即 `SANCTIONED_ENTITY`，**不做人工覆盖**。这类判断不允许 AI 参与，只允许精确匹配 + 人工法务复核。
+
+---
+
+## 6. 审计留痕
+
+每次 `SendGate` 判定，必须落一条 `compliance_audit`：
+```
+task_id, lead_id, decision(allowed/blocked), blocked_reasons,
+gate_version, config_hash, checked_at, operator(if manual override)
+```
+保留期：**不少于 3 年**（GDPR 问责制与贸易合规的共同要求）。
+
+人工覆盖（`override`）必须记录：谁、什么时候、理由、依据文件编号。**未留痕的覆盖视为未授权。**

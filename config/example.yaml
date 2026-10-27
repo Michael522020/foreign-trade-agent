@@ -1,0 +1,8 @@
+# 运行时不读取本文件。下面的数字只是样例，不能直接当生产配置。
+
+quotation:
+  default_valid_days: 15  # 示例值，上线前必须由业务确认
+
+outreach:
+  new_domain_daily_cap: 20  # 示例值，上线前必须由业务确认
+  mature_domain_daily_cap: 30  # 示例值，上线前必须由业务确认

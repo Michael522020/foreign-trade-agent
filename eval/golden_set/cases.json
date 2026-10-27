@@ -1,0 +1,26 @@
+[
+  {
+    "id": "syn-rfq-ok",
+    "source": "synthetic",
+    "text": "Need 200 pcs of chairs to Hamburg port in 45 days",
+    "expected": "REAL_RFQ"
+  },
+  {
+    "id": "syn-rfq-as-probe",
+    "source": "synthetic",
+    "text": "What is the price?",
+    "expected": "REAL_RFQ"
+  },
+  {
+    "id": "syn-probe-as-spam",
+    "source": "synthetic",
+    "text": "Dear sir we need chairs and also tables and also lamps",
+    "expected": "PRICE_PROBE"
+  },
+  {
+    "id": "syn-spam-as-probe",
+    "source": "synthetic",
+    "text": "Please send the price",
+    "expected": "SPAM_BLAST"
+  }
+]

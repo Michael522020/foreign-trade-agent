@@ -1,0 +1,15 @@
+foreign-trade-agent/
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+var/*.db
+.env
+*.egg-info/
+dist/
+build/
+outbox/
+reports/

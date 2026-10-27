@@ -1,0 +1,6 @@
+fixture_source,raw_importer_name,raw_importer_address,country,hs_code,product_desc,quantity,quantity_unit,amount_usd,ship_date,supplier_name,supplier_country,port_of_discharge,bl_no,email,domain
+synthetic,"SYN-IMPORTER-A Co., Ltd",1 Synthetic Road,DE,940360,chairs,10,pcs,1000,2026-01-15,SYN-SUPPLIER-1,CN,DEHAM,SYN-BL-1,buyer@syn-importer-a.example,syn-importer-a.example
+synthetic,syn-importer-a limited,1 Synthetic Road,DE,940360,chairs,12,pcs,1100,2026-03-02,SYN-SUPPLIER-2,CN,DEHAM,SYN-BL-2,buyer@syn-importer-a.example,syn-importer-a.example
+synthetic,SYN-IMPORTER-A GmbH,1 Synthetic Road,DE,940360,chairs,8,pcs,900,2026-05-20,SYN-SUPPLIER-3,CN,DEHAM,SYN-BL-3,buyer@syn-importer-a.example,syn-importer-a.example
+synthetic,SYN-IMPORTER-A LLC,1 Synthetic Road,DE,940360,chairs,9,pcs,950,2026-07-01,SYN-SUPPLIER-4,CN,DEHAM,SYN-BL-4,buyer@syn-importer-a.example,syn-importer-a.example
+synthetic,SYN-IMPORTER-A Inc,1 Synthetic Road,DE,940360,chairs,11,pcs,1200,2026-08-18,SYN-SUPPLIER-5,CN,DEHAM,SYN-BL-5,buyer@syn-importer-a.example,syn-importer-a.example
